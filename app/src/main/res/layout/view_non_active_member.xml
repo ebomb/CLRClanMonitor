@@ -3,64 +3,50 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layout_marginEnd="8dp"
-    android:layout_marginStart="8dp"
-    tools:context=".ClanActivity">
+    android:layout_height="wrap_content">
 
     <LinearLayout
-        android:id="@+id/title"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:orientation="horizontal"
+        android:paddingBottom="8dp"
+        android:paddingTop="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
+            android:id="@+id/name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center_vertical|start"
+            android:maxLines="1"
             android:text="Name"
             android:textAlignment="textStart"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            android:textStyle="bold"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             tools:text="Name" />
 
         <TextView
+            android:id="@+id/status"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center_vertical|start"
-            android:text="Status"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            android:textStyle="bold"
-            tools:text="Status" />
+            android:text="status"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            tools:text="Name" />
 
         <TextView
+            android:id="@+id/donations"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center_vertical|start"
-            android:text="Donations"
+            android:text="donations"
             android:textAlignment="textStart"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            android:textStyle="bold"
-            tools:text="Donations" />
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            tools:text="Name" />
     </LinearLayout>
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/non_active_members"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginTop="32dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/title"
-        app:layout_constraintStart_toStartOf="@+id/title"
-        app:layout_constraintTop_toBottomOf="@+id/title" />
-
-
 </android.support.constraint.ConstraintLayout>

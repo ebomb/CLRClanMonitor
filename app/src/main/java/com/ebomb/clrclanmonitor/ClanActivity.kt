@@ -2,24 +2,35 @@ package com.ebomb.clrclanmonitor
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
 import android.widget.Toast
+import butterknife.BindView
+import butterknife.ButterKnife
+import com.ebomb.clrclanmonitor.adapter.NonActiveMemberAdapter
 import com.ebomb.clrclanmonitor.model.Clan
 import com.ebomb.clrclanmonitor.network.ClanService
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 
+
 class ClanActivity : AppCompatActivity() {
 
-    private val clanTag = "%23P8PJLP8P"
+    @BindView(R.id.non_active_members)
+    lateinit var nonActiveMembers: RecyclerView
+
+    var nonActiveMemberAdapter: NonActiveMemberAdapter? = null
+    var disposable: Disposable? = null
+    private val clanTag = "#P8PJLP8P"
     val clanService by lazy {
         ClanService.create()
     }
-    var disposable: Disposable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_clan)
+        ButterKnife.bind(this)
     }
 
     override fun onResume() {
@@ -34,7 +45,9 @@ class ClanActivity : AppCompatActivity() {
     }
 
     private fun showResult(result: Clan?) {
-        Toast.makeText(this, "Donations = " + result?.memberList?.get(0)?.donations, Toast.LENGTH_SHORT).show()
+        nonActiveMemberAdapter = NonActiveMemberAdapter(result?.memberList)
+        nonActiveMembers.layoutManager = LinearLayoutManager(this)
+        nonActiveMembers.adapter = nonActiveMemberAdapter
     }
 
     private fun showError(message: String?) {
