@@ -25,6 +25,7 @@ class ClanActivity : AppCompatActivity() {
     var nonActiveMemberAdapter: NonActiveMemberAdapter? = null
     var disposable: Disposable? = null
     private val clanTag = "#P8PJLP8P"
+
     val clanService by lazy {
         ClanService.create()
     }
@@ -46,6 +47,16 @@ class ClanActivity : AppCompatActivity() {
                 )
     }
 
+    override fun onPause() {
+        super.onPause()
+        disposable?.dispose()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        disposable = null
+    }
+
     private fun showResult(result: Clan?) {
         val memberList = result?.memberList
         Collections.sort(memberList, DonationComparator())
@@ -57,17 +68,6 @@ class ClanActivity : AppCompatActivity() {
     private fun showError(message: String?) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
-
-    override fun onPause() {
-        super.onPause()
-        disposable?.dispose()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        disposable = null
-    }
-
 
     class DonationComparator : Comparator<ClanMember> {
 

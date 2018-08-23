@@ -9,6 +9,7 @@ import butterknife.BindView
 import butterknife.ButterKnife
 import com.ebomb.clrclanmonitor.R
 import com.ebomb.clrclanmonitor.model.ClanMember
+import java.util.*
 
 class NonActiveMemberAdapter(private var clanMembers: List<ClanMember>?) : RecyclerView.Adapter<NonActiveMemberAdapter.ViewHolder>() {
 
@@ -44,22 +45,73 @@ class NonActiveMemberAdapter(private var clanMembers: List<ClanMember>?) : Recyc
         fun bind(position: Int) {
             val member = clanMembers?.get(position)
             name.text = member?.name.toString()
-            val donationCount = member?.donations
+
+            var donationCount = member?.donations
             donations.text = donationCount.toString()
 
             var statusText = "KICK!"
+            var color = itemView.resources.getColor(R.color.red, null)
 
+            donationCount = multiplyBasedOnDay(donationCount)
             if (donationCount != null) {
                 when {
-                    donationCount > 750 -> statusText = "Extremely Active"
-                    donationCount > 500 -> statusText = "Very Active"
-                    donationCount > 250 -> statusText = "Active"
-                    donationCount > 0 -> statusText = "Lightly Active"
-                    donationCount == 0 -> statusText = "KICK!"
+                    donationCount > 750 -> {
+                        statusText = "Extremely Active"
+                        color = itemView.resources.getColor(R.color.green_dark, null)
+                    }
+                    donationCount > 500 -> {
+                        statusText = "Very Active"
+                        color = itemView.resources.getColor(R.color.green, null)
+                    }
+                    donationCount > 250 -> {
+                        statusText = "Active"
+                        color = itemView.resources.getColor(R.color.green, null)
+                    }
+                    donationCount > 100 -> {
+                        statusText = "Lightly Active"
+                        color = itemView.resources.getColor(R.color.orange, null)
+
+                    }
+                    donationCount == 0 -> {
+                        statusText = "KICK!"
+                    }
                 }
             }
             status.text = statusText
+            status.setTextColor(color)
 
+        }
+
+        private fun multiplyBasedOnDay(donationCount: Int?): Int? {
+            val calendar = Calendar.getInstance()
+            val day = calendar.get(Calendar.DAY_OF_WEEK)
+            var donationBasedOnDay = donationCount
+
+            when (day) {
+                Calendar.MONDAY -> {
+                    donationBasedOnDay = (donationCount!! + 1) * 100
+                }
+                Calendar.TUESDAY -> {
+                    donationBasedOnDay = donationCount!! * 50
+                }
+                Calendar.WEDNESDAY -> {
+                    donationBasedOnDay = donationCount!! * 10
+                }
+                Calendar.THURSDAY -> {
+                    donationBasedOnDay = donationCount!! * 2
+                }
+                Calendar.FRIDAY -> {
+
+                }
+                Calendar.SATURDAY -> {
+
+                }
+                Calendar.SUNDAY -> {
+
+                }
+            }
+
+            return donationBasedOnDay
         }
 
     }
