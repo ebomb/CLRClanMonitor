@@ -9,10 +9,12 @@ import butterknife.BindView
 import butterknife.ButterKnife
 import com.ebomb.clrclanmonitor.adapter.NonActiveMemberAdapter
 import com.ebomb.clrclanmonitor.model.Clan
+import com.ebomb.clrclanmonitor.model.ClanMember
 import com.ebomb.clrclanmonitor.network.ClanService
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
+import java.util.*
 
 
 class ClanActivity : AppCompatActivity() {
@@ -45,7 +47,9 @@ class ClanActivity : AppCompatActivity() {
     }
 
     private fun showResult(result: Clan?) {
-        nonActiveMemberAdapter = NonActiveMemberAdapter(result?.memberList)
+        val memberList = result?.memberList
+        Collections.sort(memberList, DonationComparator())
+        nonActiveMemberAdapter = NonActiveMemberAdapter(memberList)
         nonActiveMembers.layoutManager = LinearLayoutManager(this)
         nonActiveMembers.adapter = nonActiveMemberAdapter
     }
@@ -62,5 +66,15 @@ class ClanActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         disposable = null
+    }
+
+
+    class DonationComparator : Comparator<ClanMember> {
+
+        override fun compare(member1: ClanMember, member2: ClanMember): Int {
+            val firstHomeScreenCardPriority = member1.donations
+            val secondHomeScreenCardPriority = member2.donations
+            return firstHomeScreenCardPriority!! - secondHomeScreenCardPriority!!
+        }
     }
 }

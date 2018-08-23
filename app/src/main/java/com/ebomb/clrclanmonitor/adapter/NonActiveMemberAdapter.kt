@@ -44,8 +44,21 @@ class NonActiveMemberAdapter(private var clanMembers: List<ClanMember>?) : Recyc
         fun bind(position: Int) {
             val member = clanMembers?.get(position)
             name.text = member?.name.toString()
-            status.text = "INACTIVE!!!";
-            donations.text = member?.donations.toString()
+            val donationCount = member?.donations
+            donations.text = donationCount.toString()
+
+            var statusText = "KICK!"
+
+            if (donationCount != null) {
+                when {
+                    donationCount > 750 -> statusText = "Extremely Active"
+                    donationCount > 500 -> statusText = "Very Active"
+                    donationCount > 250 -> statusText = "Active"
+                    donationCount > 0 -> statusText = "Lightly Active"
+                    donationCount == 0 -> statusText = "KICK!"
+                }
+            }
+            status.text = statusText
 
         }
 
