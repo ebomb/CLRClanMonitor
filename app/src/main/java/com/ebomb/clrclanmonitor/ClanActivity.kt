@@ -10,6 +10,7 @@ import butterknife.ButterKnife
 import com.ebomb.clrclanmonitor.adapter.NonActiveMemberAdapter
 import com.ebomb.clrclanmonitor.model.Clan
 import com.ebomb.clrclanmonitor.model.ClanMember
+import com.ebomb.clrclanmonitor.model.Warlog
 import com.ebomb.clrclanmonitor.network.ClanService
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -25,6 +26,7 @@ class ClanActivity : AppCompatActivity() {
     var nonActiveMemberAdapter: NonActiveMemberAdapter? = null
     var disposable: Disposable? = null
     private val clanTag = "#P8PJLP8P"
+
     val clanService by lazy {
         ClanService.create()
     }
@@ -41,21 +43,9 @@ class ClanActivity : AppCompatActivity() {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        { result -> showResult(result) },
+                        { clan -> showClanResults(clan) },
                         { error -> showError(error.message) }
                 )
-    }
-
-    private fun showResult(result: Clan?) {
-        val memberList = result?.memberList
-        Collections.sort(memberList, DonationComparator())
-        nonActiveMemberAdapter = NonActiveMemberAdapter(memberList)
-        nonActiveMembers.layoutManager = LinearLayoutManager(this)
-        nonActiveMembers.adapter = nonActiveMemberAdapter
-    }
-
-    private fun showError(message: String?) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
     override fun onPause() {
@@ -68,13 +58,33 @@ class ClanActivity : AppCompatActivity() {
         disposable = null
     }
 
+    private fun showClanResults(clan: Clan?) {
+        val memberList: List<ClanMember>? = clan?.memberList
+        Collections.sort(memberList, DonationComparator())
+        disposable = clanService.warlog(clanTag)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        { warlog -> handleWarlog(memberList, warlog) },
+                        { error -> showError(error.message) }
+                )
+    }
+
+    private fun handleWarlog(memberList: List<ClanMember>?, warlog: Warlog?) {
+        nonActiveMemberAdapter = NonActiveMemberAdapter(memberList, warlog)
+        nonActiveMembers.layoutManager = LinearLayoutManager(this)
+        nonActiveMembers.adapter = nonActiveMemberAdapter
+    }
+
+    private fun showError(message: String?) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
 
     class DonationComparator : Comparator<ClanMember> {
-
         override fun compare(member1: ClanMember, member2: ClanMember): Int {
             val firstHomeScreenCardPriority = member1.donations
             val secondHomeScreenCardPriority = member2.donations
-            return firstHomeScreenCardPriority!! - secondHomeScreenCardPriority!!
+            return secondHomeScreenCardPriority!! - firstHomeScreenCardPriority!!
         }
     }
 }
