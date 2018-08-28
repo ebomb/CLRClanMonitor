@@ -2,6 +2,7 @@ package com.ebomb.clrclanmonitor.network
 
 import com.ebomb.clrclanmonitor.BuildConfig
 import com.ebomb.clrclanmonitor.model.Clan
+import com.ebomb.clrclanmonitor.model.Warlog
 import io.reactivex.Observable
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -18,6 +19,10 @@ interface ClanService {
     @Headers("Accept: application/json", "Authorization: Bearer " + BuildConfig.CLRTOKEN)
     @GET("clans/{clanTag}")
     fun clanInfo(@Path(value = "clanTag") clanTag: String): Observable<Clan>
+
+    @Headers("Accept: application/json", "Authorization: Bearer " + BuildConfig.CLRTOKEN)
+    @GET("clans/{clanTag}/warlog")
+    fun warlog(@Path(value = "clanTag") clanTag: String): Observable<Warlog>
 
     companion object {
         fun create(): ClanService {

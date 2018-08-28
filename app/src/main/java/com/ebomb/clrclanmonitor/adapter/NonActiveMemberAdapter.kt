@@ -9,9 +9,11 @@ import butterknife.BindView
 import butterknife.ButterKnife
 import com.ebomb.clrclanmonitor.R
 import com.ebomb.clrclanmonitor.model.ClanMember
+import com.ebomb.clrclanmonitor.model.Warlog
 import java.util.*
 
-class NonActiveMemberAdapter(private var clanMembers: List<ClanMember>?) : RecyclerView.Adapter<NonActiveMemberAdapter.ViewHolder>() {
+
+class NonActiveMemberAdapter(private var clanMembers: List<ClanMember>?, private var warlog: Warlog?) : RecyclerView.Adapter<NonActiveMemberAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NonActiveMemberAdapter.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -32,11 +34,23 @@ class NonActiveMemberAdapter(private var clanMembers: List<ClanMember>?) : Recyc
         @BindView(R.id.name)
         lateinit var name: TextView
 
+        @BindView(R.id.war_battles)
+        lateinit var warBattles: TextView
+
+        @BindView(R.id.war_wins)
+        lateinit var warWins: TextView
+
+        @BindView(R.id.war_cards_received)
+        lateinit var warCards: TextView
+
+        @BindView(R.id.donation_giver)
+        lateinit var donationsGave: TextView
+
+        @BindView(R.id.donation_receiver)
+        lateinit var donationsReceived: TextView
+
         @BindView(R.id.status)
         lateinit var status: TextView
-
-        @BindView(R.id.donations)
-        lateinit var donations: TextView
 
         init {
             ButterKnife.bind(this, itemView)
@@ -44,42 +58,70 @@ class NonActiveMemberAdapter(private var clanMembers: List<ClanMember>?) : Recyc
 
         fun bind(position: Int) {
             val member = clanMembers?.get(position)
+            val donationsReceivedCount = member?.donationsReceived
+            val donationsGaveCount = member?.donations
+
             name.text = member?.name.toString()
+            donationsGave.text = donationsGaveCount.toString()
+            donationsReceived.text = donationsReceivedCount.toString()
 
-            var donationCount = member?.donations
-            donations.text = donationCount.toString()
+            setWarDetailsView(member)
+            setStatusView(member)
+        }
 
+        private fun setStatusView(member: ClanMember?) {
             var statusText = "KICK!"
             var color = itemView.resources.getColor(R.color.red, null)
+            val donationGaveCount = multiplyBasedOnDay(member?.donations)
+            val donationReceivedCount = multiplyBasedOnDay(member?.donationsReceived)
+            val warBattles = warBattles.text.toString().toInt()
+            val warWins = warWins.text.toString().toInt()
+            val warCards = warCards.text.toString().toInt()
 
-            donationCount = multiplyBasedOnDay(donationCount)
-            if (donationCount != null) {
+            if (donationGaveCount != null && donationReceivedCount != null) {
                 when {
-                    donationCount > 750 -> {
-                        statusText = "Extremely Active"
+                    (donationGaveCount > 400 && donationReceivedCount > 400)
+                            || (warWins > 4 || warBattles > 10 || warCards > 3000) -> {
+                        statusText = "E.A."
                         color = itemView.resources.getColor(R.color.green_dark, null)
                     }
-                    donationCount > 500 -> {
-                        statusText = "Very Active"
+                    (donationGaveCount > 300 && donationReceivedCount > 300)
+                            || (warWins > 3 || warBattles > 8 || warCards > 2000) -> {
+                        statusText = "V.A."
                         color = itemView.resources.getColor(R.color.green, null)
                     }
-                    donationCount > 250 -> {
+                    (donationGaveCount > 200 && donationReceivedCount > 200)
+                            || (warWins > 2 || warBattles > 4 || warCards > 1000) -> {
                         statusText = "Active"
                         color = itemView.resources.getColor(R.color.green, null)
                     }
-                    donationCount > 100 -> {
-                        statusText = "Lightly Active"
+                    (donationGaveCount > 100 && donationReceivedCount > 100)
+                            || (warWins > 1 || warBattles > 2 || warCards > 500) -> {
+                        statusText = "L.A."
                         color = itemView.resources.getColor(R.color.orange, null)
-
-                    }
-                    donationCount == 0 -> {
-                        statusText = "KICK!"
                     }
                 }
             }
             status.text = statusText
             status.setTextColor(color)
+        }
 
+        private fun setWarDetailsView(member: ClanMember?) {
+            var warBattlesCount = 0
+            var warWinsCount = 0
+            var warCardsCount = 0
+            for (war in warlog?.items!!) {
+                for (warMember in war.participants!!) {
+                    if (member?.tag.equals(warMember.tag)) {
+                        warBattlesCount += warMember.battlesPlayed!!
+                        warWinsCount += warMember.wins!!
+                        warCardsCount += warMember.cardsEarned!!
+                    }
+                }
+            }
+            warBattles.text = warBattlesCount.toString()
+            warWins.text = warWinsCount.toString()
+            warCards.text = warCardsCount.toString()
         }
 
         private fun multiplyBasedOnDay(donationCount: Int?): Int? {
@@ -92,10 +134,10 @@ class NonActiveMemberAdapter(private var clanMembers: List<ClanMember>?) : Recyc
                     donationBasedOnDay = (donationCount!! + 1) * 100
                 }
                 Calendar.TUESDAY -> {
-                    donationBasedOnDay = donationCount!! * 50
+                    donationBasedOnDay = donationCount!! * 6
                 }
                 Calendar.WEDNESDAY -> {
-                    donationBasedOnDay = donationCount!! * 10
+                    donationBasedOnDay = donationCount!! * 4
                 }
                 Calendar.THURSDAY -> {
                     donationBasedOnDay = donationCount!! * 2
