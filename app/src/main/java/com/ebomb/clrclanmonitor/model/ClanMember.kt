@@ -17,4 +17,6 @@ class ClanMember {
     @Expose
     @SerializedName("donations")
     var donations: Int? = 0
+
+    var recentPlayer: Boolean? = false
 }

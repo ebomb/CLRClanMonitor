@@ -13,11 +13,11 @@ import com.ebomb.clrclanmonitor.model.Warlog
 import java.util.*
 
 
-class NonActiveMemberAdapter(private var clanMembers: List<ClanMember>?, private var warlog: Warlog?) : RecyclerView.Adapter<NonActiveMemberAdapter.ViewHolder>() {
+class ClanMonitorAdapter(private var clanMembers: List<ClanMember>?, private var warlog: Warlog?) : RecyclerView.Adapter<ClanMonitorAdapter.ViewHolder>() {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NonActiveMemberAdapter.ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ClanMonitorAdapter.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        val searchResultView = inflater.inflate(R.layout.view_non_active_member, parent, false)
+        val searchResultView = inflater.inflate(R.layout.item_member_status, parent, false)
         return ViewHolder(searchResultView)
     }
 
@@ -52,6 +52,9 @@ class NonActiveMemberAdapter(private var clanMembers: List<ClanMember>?, private
         @BindView(R.id.status)
         lateinit var status: TextView
 
+        @BindView(R.id.war_win_lose_ratio)
+        lateinit var warWinPercentage: TextView
+
         init {
             ButterKnife.bind(this, itemView)
         }
@@ -80,22 +83,22 @@ class NonActiveMemberAdapter(private var clanMembers: List<ClanMember>?, private
 
             if (donationGaveCount != null && donationReceivedCount != null) {
                 when {
-                    (donationGaveCount > 400 && donationReceivedCount > 400)
+                    (donationGaveCount > 600 && donationReceivedCount > 600)
                             || (warWins > 4 || warBattles > 10 || warCards > 3000) -> {
                         statusText = "E.A."
                         color = itemView.resources.getColor(R.color.green_dark, null)
                     }
-                    (donationGaveCount > 300 && donationReceivedCount > 300)
+                    (donationGaveCount > 400 && donationReceivedCount > 400)
                             || (warWins > 3 || warBattles > 8 || warCards > 2000) -> {
                         statusText = "V.A."
                         color = itemView.resources.getColor(R.color.green, null)
                     }
-                    (donationGaveCount > 200 && donationReceivedCount > 200)
+                    (donationGaveCount > 300 && donationReceivedCount > 300)
                             || (warWins > 2 || warBattles > 4 || warCards > 1000) -> {
                         statusText = "Active"
                         color = itemView.resources.getColor(R.color.green, null)
                     }
-                    (donationGaveCount > 100 && donationReceivedCount > 100)
+                    (donationGaveCount > 200 && donationReceivedCount > 200)
                             || (warWins > 1 || warBattles > 2 || warCards > 500) -> {
                         statusText = "L.A."
                         color = itemView.resources.getColor(R.color.orange, null)
@@ -122,6 +125,7 @@ class NonActiveMemberAdapter(private var clanMembers: List<ClanMember>?, private
             warBattles.text = warBattlesCount.toString()
             warWins.text = warWinsCount.toString()
             warCards.text = warCardsCount.toString()
+            warWinPercentage.text = String.format("%.0f", ((warWinsCount * 100f) / warBattlesCount)) + "%"
         }
 
         private fun multiplyBasedOnDay(donationCount: Int?): Int? {

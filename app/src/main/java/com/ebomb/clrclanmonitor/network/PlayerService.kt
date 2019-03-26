@@ -1,10 +1,8 @@
 package com.ebomb.clrclanmonitor.network
 
 import com.ebomb.clrclanmonitor.BuildConfig
-import com.ebomb.clrclanmonitor.CLRConstants.BASE_CLAN_ENDPOINT
-import com.ebomb.clrclanmonitor.CLRConstants.BASE_URL
-import com.ebomb.clrclanmonitor.model.Clan
-import com.ebomb.clrclanmonitor.model.Warlog
+import com.ebomb.clrclanmonitor.CLRConstants
+import com.ebomb.clrclanmonitor.model.PlayerBattle
 import io.reactivex.Observable
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -15,35 +13,29 @@ import retrofit2.http.GET
 import retrofit2.http.Headers
 import retrofit2.http.Path
 
-
-interface ClanService {
-
-    @Headers("Accept: application/json", "Authorization: Bearer " + BuildConfig.CLRTOKEN)
-    @GET(BASE_CLAN_ENDPOINT)
-    fun clanInfo(@Path(value = "clanTag") clanTag: String): Observable<Clan>
+interface PlayerService {
 
     @Headers("Accept: application/json", "Authorization: Bearer " + BuildConfig.CLRTOKEN)
-    @GET("$BASE_CLAN_ENDPOINT/warlog")
-    fun warlog(@Path(value = "clanTag") clanTag: String): Observable<Warlog>
+    @GET("players/{playerTag}/battlelog")
+    fun battlelog(@Path(value = "playerTag") playerTag: String): Observable<PlayerBattle>
 
     companion object {
-        fun create(): ClanService {
+        fun create(): PlayerService {
             val logging = HttpLoggingInterceptor()
             if (BuildConfig.DEBUG) {
                 logging.level = HttpLoggingInterceptor.Level.BODY
             }
 
-            val httpClient = OkHttpClient.Builder()
-                    .addInterceptor(logging)
+            val httpClient = OkHttpClient.Builder().addInterceptor(logging)
 
             val retrofit = Retrofit.Builder()
                     .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                     .addConverterFactory(GsonConverterFactory.create())
-                    .baseUrl(BASE_URL)
+                    .baseUrl(CLRConstants.BASE_URL)
                     .client(httpClient.build())
                     .build()
 
-            return retrofit.create(ClanService::class.java)
+            return retrofit.create(PlayerService::class.java)
         }
     }
 }

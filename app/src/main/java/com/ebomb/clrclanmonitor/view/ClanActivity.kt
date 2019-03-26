@@ -1,17 +1,24 @@
-package com.ebomb.clrclanmonitor
+package com.ebomb.clrclanmonitor.view
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.util.Log
+import android.view.View
+import android.widget.FrameLayout
 import android.widget.Toast
 import butterknife.BindView
 import butterknife.ButterKnife
-import com.ebomb.clrclanmonitor.adapter.NonActiveMemberAdapter
+import com.ebomb.clrclanmonitor.CLRConstants
+import com.ebomb.clrclanmonitor.CLRConstants.CLAN_TAG
+import com.ebomb.clrclanmonitor.R
+import com.ebomb.clrclanmonitor.adapter.ClanMonitorAdapter
 import com.ebomb.clrclanmonitor.model.Clan
 import com.ebomb.clrclanmonitor.model.ClanMember
 import com.ebomb.clrclanmonitor.model.Warlog
 import com.ebomb.clrclanmonitor.network.ClanService
+import com.ebomb.clrclanmonitor.network.PlayerService
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -20,15 +27,21 @@ import java.util.*
 
 class ClanActivity : AppCompatActivity() {
 
-    @BindView(R.id.non_active_members)
-    lateinit var nonActiveMembers: RecyclerView
+    @BindView(R.id.member_status)
+    lateinit var memberStatusView: RecyclerView
 
-    var nonActiveMemberAdapter: NonActiveMemberAdapter? = null
+    @BindView(R.id.progressBarBackground)
+    lateinit var progressBar: FrameLayout
+
+    var clanMonitorAdapter: ClanMonitorAdapter? = null
     var disposable: Disposable? = null
-    private val clanTag = "#P8PJLP8P"
 
     val clanService by lazy {
         ClanService.create()
+    }
+
+    val playerService by lazy {
+        PlayerService.create()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,7 +52,8 @@ class ClanActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        disposable = clanService.clanInfo(clanTag)
+        progressBar.visibility = View.VISIBLE
+        disposable = clanService.clanInfo(CLAN_TAG)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
@@ -61,7 +75,7 @@ class ClanActivity : AppCompatActivity() {
     private fun showClanResults(clan: Clan?) {
         val memberList: List<ClanMember>? = clan?.memberList
         Collections.sort(memberList, DonationComparator())
-        disposable = clanService.warlog(clanTag)
+        disposable = clanService.warlog(CLAN_TAG)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
@@ -71,12 +85,37 @@ class ClanActivity : AppCompatActivity() {
     }
 
     private fun handleWarlog(memberList: List<ClanMember>?, warlog: Warlog?) {
-        nonActiveMemberAdapter = NonActiveMemberAdapter(memberList, warlog)
-        nonActiveMembers.layoutManager = LinearLayoutManager(this)
-        nonActiveMembers.adapter = nonActiveMemberAdapter
+        if (memberList != null) {
+            for (member in memberList) {
+                disposable = playerService.battlelog(member.tag!!)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                { playerBattle ->
+                                    for (team in playerBattle.team!!) {
+                                        if (!team.clan?.tag.equals(CLRConstants.CLAN_TAG)) {
+                                            member.recentPlayer = true
+                                        }
+                                    }
+                                },
+                                { error ->
+                                    Log.e("Error", error.message)
+                                }
+                        )
+            }
+
+            clanMonitorAdapter = ClanMonitorAdapter(memberList, warlog)
+            memberStatusView.layoutManager = LinearLayoutManager(this)
+            memberStatusView.adapter = clanMonitorAdapter
+            progressBar.visibility = View.GONE
+        } else {
+            showError("No players found!")
+        }
     }
 
     private fun showError(message: String?) {
+        Log.e("Error", message)
+        progressBar.visibility = View.GONE
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
